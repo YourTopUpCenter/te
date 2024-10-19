@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popup Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        /* Popup Styles */
+        #popup {
+            display: none; /* Initially hidden */
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        #popupContent {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #closePopup {
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to Your Website</h1>
+    
+    <!-- Popup Structure -->
+    <div id="popup">
+        <div id="popupContent">
+            <span id="closePopup">×</span>
+            <img id="popupImage" src="" alt="Popup Image" style="max-width:100%; height:auto;">
+            <h2 id="popupTitle"></h2>
+            <p id="popupSubtitle"></p>
+            <a id="popupButton" href="#" target="_blank" style="display: inline-block; padding: 10px 15px; background-color: blue; color: white; text-decoration: none; border-radius: 5px;"></a>
+        </div>
+    </div>
+
+    <script>
+        // Function to fetch popup data from Google Sheets
+        async function fetchPopupData() {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbziRfyYDx_YGQfXS9H6BjFKW0qO6Xu0RBHlug9al5EFwyJXmoHDur7PQ1ivS4FElbB6/exec');
+            const data = await response.json();
+
+            const currentPage = window.location.pathname; // Get current page URL path
+            const popupInfo = data.find(item => item.page === currentPage);
+
+            // Check if popup should be shown
+            if (popupInfo && popupInfo.showPopup === "Yes") {
+                document.getElementById("popupTitle").innerText = popupInfo.title;
+                document.getElementById("popupSubtitle").innerText = popupInfo.subtitle;
+                document.getElementById("popupImage").src = popupInfo.image;
+                document.getElementById("popupButton").innerText = popupInfo.buttonText;
+                document.getElementById("popupButton").href = popupInfo.buttonLink;
+                document.getElementById("popup").style.display = "flex"; // Show popup
+            }
+        }
+
+        // Close popup
+        document.getElementById("closePopup").onclick = function() {
+            document.getElementById("popup").style.display = "none";
+        }
+
+        // Fetch popup data when the page loads
+        window.onload = fetchPopupData;
+    </script>
+</body>
+</html>
