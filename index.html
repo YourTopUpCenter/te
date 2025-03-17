@@ -1,80 +1,64 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popup Example</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        /* Popup Styles */
-        #popup {
-            display: none; /* Initially hidden */
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-        }
-        #popupContent {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        #closePopup {
-            cursor: pointer;
-            color: red;
-            font-weight: bold;
-        }
-    </style>
+    <title>SMS Sender</title>
 </head>
 <body>
+    <h1>Send SMS</h1>
+    <form id="smsForm">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="sms">SMS:</label><br>
+        <textarea id="sms" name="sms"></textarea><br><br>
+        <button type="submit">Send SMS</button>
+    </form>
 
-    <h1>Welcome to Your Website</h1>
-    
-    <!-- Popup Structure -->
-    <div id="popup">
-        <div id="popupContent">
-            <span id="closePopup">×</span>
-            <img id="popupImage" src="" alt="Popup Image" style="max-width:100%; height:auto;">
-            <h2 id="popupTitle"></h2>
-            <p id="popupSubtitle"></p>
-            <a id="popupButton" href="#" target="_blank" style="display: inline-block; padding: 10px 15px; background-color: blue; color: white; text-decoration: none; border-radius: 5px;"></a>
-        </div>
-    </div>
+    <h2>SMS History</h2>
+    <div id="smsHistory"></div>
 
     <script>
-        // Function to fetch popup data from Google Sheets
-        async function fetchPopupData() {
-            const response = await fetch('https://script.google.com/macros/s/AKfycbziRfyYDx_YGQfXS9H6BjFKW0qO6Xu0RBHlug9al5EFwyJXmoHDur7PQ1ivS4FElbB6/exec');
-            const data = await response.json();
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxs9axR0GmeP_YC8eTjiTLxBviBowIPvvHE2d60Yy7aLXLnmpG8bVqt8Y34FPBXBkM6/exec";
+        const smsForm = document.getElementById('smsForm');
+        const smsHistoryDiv = document.getElementById('smsHistory');
 
-            const currentPage = window.location.pathname; // Get current page URL path
-            const popupInfo = data.find(item => item.page === currentPage);
+        smsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-            // Check if popup should be shown
-            if (popupInfo && popupInfo.showPopup === "Yes") {
-                document.getElementById("popupTitle").innerText = popupInfo.title;
-                document.getElementById("popupSubtitle").innerText = popupInfo.subtitle;
-                document.getElementById("popupImage").src = popupInfo.image;
-                document.getElementById("popupButton").innerText = popupInfo.buttonText;
-                document.getElementById("popupButton").href = popupInfo.buttonLink;
-                document.getElementById("popup").style.display = "flex"; // Show popup
-            }
+            const username = document.getElementById('username').value;
+            const sms = document.getElementById('sms').value;
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('sms', sms);
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                loadSMSData(); // Reload SMS data after sending
+            })
+            .catch(error => console.error('Error!', error.message));
+        });
+
+        function loadSMSData() {
+            fetch(scriptURL + '?action=getData')
+            .then(response => response.json())
+            .then(data => {
+                smsHistoryDiv.innerHTML = ''; // Clear previous data
+                data.forEach(item => {
+                    const smsDiv = document.createElement('div');
+                    smsDiv.innerHTML = `<p><strong>Date:</strong> ${item.Date}, <strong>Username:</strong> ${item.Username}, <strong>SMS:</strong> ${item.SMS}</p>`;
+                    smsHistoryDiv.appendChild(smsDiv);
+                });
+            })
+            .catch(error => console.error('Error fetching SMS data:', error));
         }
 
-        // Close popup
-        document.getElementById("closePopup").onclick = function() {
-            document.getElementById("popup").style.display = "none";
-        }
-
-        // Fetch popup data when the page loads
-        window.onload = fetchPopupData;
+        // Load SMS data on page load
+        loadSMSData();
     </script>
 </body>
-    </html>
+                         </html>
